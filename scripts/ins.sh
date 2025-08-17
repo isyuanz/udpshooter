@@ -42,6 +42,24 @@ check_root() {
     fi
 }
 
+# 配置DNS确保正确解析域名
+check_configure_dns() {
+    log_info "检测和配置DNS..."
+    if ! grep -E '^nameserver' '/etc/resolv.conf' &> /dev/null; then
+        cat >> /etc/resolv.conf <<EOF
+nameserver 114.114.114.114
+nameserver 114.114.115.115
+nameserver 223.5.5.5
+nameserver 223.6.6.6
+nameserver 119.29.29.29
+nameserver 8.8.8.8
+EOF
+        log_info "DNS已配置为114DNS、阿里DNS、腾讯DNS和Google DNS"
+    fi
+    sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+}
+
+
 # 检查系统版本
 check_system() {
     if ! grep -q "CentOS\|Red Hat\|Rocky\|AlmaLinux" /etc/os-release; then
@@ -262,6 +280,7 @@ main() {
     # 检查系统要求
     check_root
     check_system
+    check_configure_dns
     
     # 执行安装步骤
     set_timezone
